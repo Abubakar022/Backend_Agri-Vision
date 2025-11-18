@@ -23,3 +23,15 @@ exports.createUser = async (req, res, next) => {
     next(err); // pass to global error handler
   }
 };
+exports.getUserStats = async (req, res, next) => {
+  try {
+    const stats = await userServices.getStats();
+
+    res.json({
+      status: "success",
+      data: stats,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

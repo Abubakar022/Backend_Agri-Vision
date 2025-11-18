@@ -1,38 +1,50 @@
 const userModel = require('../modules/user');
+const { encrypt, decrypt } = require('../utils/crypto');
 
 class userServices {
   static async createUser(uId, phone, role) {
     try {
-      // 1. Try to find the user by their phone number
-      const existingUser = await userModel.findOne({ phone: phone });
+      const encryptedPhone = encrypt(phone);
 
-      // 2. If user is found (login)
+      // Find by encrypted phone
+      const existingUser = await userModel.findOne({ phone: encryptedPhone });
+
       if (existingUser) {
-        // Optional: Update the uId in case it changed (e.g., user re-verified)
         existingUser.uId = uId;
         await existingUser.save();
-        
-        // Return the existing user and a flag indicating they are not new
-        return { user: existingUser, isNew: false };
+
+        // Decrypt before sending to frontend
+        const userObj = existingUser.toObject();
+        userObj.phone = decrypt(userObj.phone);
+
+        return { user: userObj, isNew: false };
       }
 
-      // 3. If user is NOT found (signup)
       const newUser = new userModel({
         uId,
-        phone,
+        phone: encryptedPhone,
         role,
+        isActive: true,  // default
       });
 
-      // Save the new user
       await newUser.save();
 
-      // Return the new user and a flag indicating they are new
-      return { user: newUser, isNew: true };
+      const userObj = newUser.toObject();
+      userObj.phone = decrypt(userObj.phone);
+
+      return { user: userObj, isNew: true };
 
     } catch (err) {
-      // Throw any other errors (e.g., database validation)
       throw new Error('Error finding or creating user: ' + err.message);
     }
   }
+  static async getStats() {
+  const total = await userModel.countDocuments();
+  const active = await userModel.countDocuments({ isActive: true });
+
+  return { total, active };
 }
+
+}
+
 module.exports = userServices;
