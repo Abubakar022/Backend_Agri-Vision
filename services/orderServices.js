@@ -139,6 +139,28 @@ class OrderServices {
     }
   }
 
+static async userCancelOrder(orderId, userId) {
+  try {
+    const order = await orderModel.findOne({ _id: orderId, userId });
+
+    if (!order) {
+      throw new Error("Order not found or unauthorized");
+    }
+
+    // Sirf pending order delete ho sakta
+    if (order.status !== 1) {
+      throw new Error("Only pending orders can be cancelled");
+    }
+
+    await orderModel.findByIdAndDelete(orderId);
+    return true;
+
+  } catch (err) {
+    throw new Error(err.message);
+  }
+}
+
+
 }
 
 module.exports = OrderServices;
