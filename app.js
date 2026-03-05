@@ -2,6 +2,7 @@ const express=require('express');
 const body_parser = require('body-parser');
 const userRouter = require('./routes/userRoute');
 const orderRouter = require('./routes/orderRoutes');
+const notificationRouter = require('./routes/notificationRoutes'); 
 // app.js - ADD THESE LINES AT THE VERY TOP
 const mongoose = require('mongoose');
 
@@ -21,5 +22,5 @@ mongoose.modelSchemas = {};
  app.use('/',userRouter);
 
  app.use('/',orderRouter);
-
+app.use('/', notificationRouter);
   module.exports=app;
